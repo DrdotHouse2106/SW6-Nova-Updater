@@ -116,6 +116,18 @@
             }
         },
         {
+            "repository": "DrdotHouse2106/SW6-Nova-Kategorie-Automatik",
+            "pluginName": "NovaKategorieAutomatik",
+            "name": "Nova Kategorie-Automatik",
+            "vendor": "DrdotHouse",
+            "category": "administration",
+            "license": "MIT",
+            "description": {
+                "de-DE": "Ordnet Artikel fest den Kategorien zu, deren Teileart-Code zur Eigenschaft „Teileart“ passt – ohne dynamische Produktgruppen, Codes im Shop unsichtbar.",
+                "en-GB": "Assigns products to categories by part type code – without dynamic product groups, codes invisible in the storefront."
+            }
+        },
+        {
             "repository": "shopware/SwagLanguagePack",
             "pluginName": "SwagLanguagePack",
             "name": "Sprachpaket",
