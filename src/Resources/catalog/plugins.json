@@ -318,6 +318,18 @@
                 "de-DE": "Integration des polnischen Zahlungsanbieters Tpay.",
                 "en-GB": "Integration of the Polish payment provider Tpay."
             }
+        },
+        {
+            "repository": "DrdotHouse2106/SW6-Nova-Rechtstexte",
+            "pluginName": "NovaRechtstexte",
+            "name": "Nova Rechtstexte",
+            "vendor": "DrdotHouse",
+            "category": "administration",
+            "license": "MIT",
+            "description": {
+                "de-DE": "Rechtstexte einmal pflegen, in allen Shops nutzen: Platzhalter wie [[Shopname]], [[E-Mail]] oder [[Telefon]] werden je Verkaufskanal ersetzt.",
+                "en-GB": "Maintain legal texts once for all shops: placeholders like [[Shopname]] or [[E-Mail]] are replaced per sales channel."
+            }
         }
     ]
 }
