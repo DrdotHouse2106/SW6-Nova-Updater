@@ -12,6 +12,7 @@ use DhGithubUpdater\Github\GithubApiClient;
 use DhGithubUpdater\Github\RepositoryReference;
 use DhGithubUpdater\Package\CompatibilityChecker;
 use Psr\Log\LoggerInterface;
+use Shopware\Core\Framework\Adapter\Cache\CacheClearer;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
@@ -48,6 +49,7 @@ class GithubPluginManager
         private readonly LoggerInterface $logger,
         private readonly ConnectionTester $connectionTester,
         private readonly CatalogProvider $catalogProvider,
+        private readonly ?CacheClearer $cacheClearer = null,
     ) {
     }
 
@@ -147,6 +149,8 @@ class GithubPluginManager
             if ($plugin === null) {
                 throw new GithubUpdaterException('Das Plugin wurde abgelegt, von Shopware aber nicht erkannt. Bitte die Logs prüfen.', 500);
             }
+
+            $this->discardCompiledContainer($pluginName);
 
             $this->sourceLinkStore->recordInstallation($plugin->getId(), $repository, $candidate->ref);
 
@@ -532,6 +536,28 @@ class GithubPluginManager
      *
      * @return T
      */
+    /**
+     * Verwirft Shopwares kompilierten Service-Container, damit die nächste Anfrage (Lebenszyklus-Schritt,
+     * Shop, Administration) ihn mit den neuen Plugin-Dateien neu aufbaut. Sonst bekommen Klassen, deren
+     * Konstruktor sich geändert hat, weiter die alten Argumente – jede Anfrage endet mit Fehler 500,
+     * bis jemand var/cache von Hand löscht.
+     */
+    private function discardCompiledContainer(string $pluginName): void
+    {
+        if ($this->cacheClearer === null) {
+            return;
+        }
+
+        try {
+            $this->cacheClearer->clearContainerCache();
+        } catch (\Throwable $e) {
+            $this->logger->warning('DhGithubUpdater: Service-Container konnte nach dem Update nicht verworfen werden – ggf. bin/console cache:clear ausführen.', [
+                'plugin' => $pluginName,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
     private function locked(callable $callback): mixed
     {
         $lock = $this->lockFactory->createLock(self::LOCK_NAME, 600);

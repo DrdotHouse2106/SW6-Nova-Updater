@@ -1,3 +1,6 @@
+# 1.6.1
+- Absicherung: Nach dem Austausch der Plugin-Dateien verwirft der Updater Shopwares kompilierten Service-Container. Bisher konnte ein Update, das Konstruktoren eines Plugins ändert, Shop und Administration mit Fehler 500 lahmlegen (Anzeige „Shopware arbeitet noch …“ hing), bis `var/cache` von Hand gelöscht wurde
+
 # 1.6.0
 - Neu: **„Was ist neu?“** – auf der Plugin-Karte neben „Aktualisieren“ zeigt ein Fenster die Release-Notizen aller Versionen zwischen der installierten und der gewählten Version (mit „Jetzt aktualisieren“)
 - Nach einem Update öffnet sich das Fenster automatisch mit den Änderungen von der alten zur neuen Version

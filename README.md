@@ -280,6 +280,12 @@ Redirect-Schutz, Token-Weitergabe, Pfad-Prüfungen und „Verbindung testen“ a
 
 Hier sammeln wir Hürden, die bei Installation und Betrieb tatsächlich aufgetreten sind. **Neue Probleme bitte ergänzen** (oder als Issue melden), damit andere nicht lange suchen müssen.
 
+### Update hängt bei „Shopware arbeitet noch …“, Shop und Administration zeigen Fehler 500
+
+**Ursache:** Bis 1.6.0 arbeitete Shopware nach dem Dateitausch weiter mit dem alten kompilierten Service-Container. Hat das neue Plugin einen geänderten Konstruktor, scheitert jede Anfrage (im Log bzw. unter `/api/_info/health-check` z. B. „Argument #2 must be of type …“)
+
+**Lösung:** Im Hosting (z. B. Plesk → Dateien) den Ordner `var/cache/prod_…` löschen und die Administration neu laden – Daten gehen dabei nicht verloren. Ab 1.6.1 verwirft der Updater den Container selbst
+
 ### Nach dem ZIP-Upload fehlt der Button „Aus GitHub installieren“
 
 **Ursache:** Plugin nur hochgeladen, nicht installiert/aktiviert, oder Administration noch im Browser-Cache

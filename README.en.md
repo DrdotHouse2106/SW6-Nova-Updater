@@ -109,6 +109,7 @@ Updates and "install and activate" run in steps: first Shopware's lifecycle (mig
 
 Known pitfalls from real installations. **Please add new ones** (or open an issue).
 
+- **Update stuck at "Shopware is still working …", shop and admin return 500** (≤ 1.6.0): the old compiled service container was still used with the new plugin files. Delete `var/cache/prod_…` and reload the admin. Since 1.6.1 the updater discards the container itself.
 - **"Install from GitHub" button missing after ZIP upload:** install *and* activate the plugin, reload the admin (F5); if still missing run `bin/console assets:install` and `cache:clear`.
 - **"No compatible versions":** the repository has no tags/releases. Create a release (tag `v1.0.0`) or enable branch installs.
 - **Release not listed:** `require.shopware/core` of that tag does not match, or the tag is not a version number.
