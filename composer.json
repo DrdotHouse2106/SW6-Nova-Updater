@@ -2,7 +2,7 @@
     "name": "drdothouse/dh-github-updater",
     "description": "Installiert und aktualisiert Shopware-6-Plugins sicher direkt aus GitHub-Repositories.",
     "type": "shopware-platform-plugin",
-    "version": "1.6.1",
+    "version": "1.6.2",
     "license": "MIT",
     "authors": [
         {

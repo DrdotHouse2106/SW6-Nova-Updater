@@ -1,3 +1,7 @@
+# 1.6.2
+- Fehlerbehebung: Der kompilierte Service-Container wurde bisher nur nach einer **Neuinstallation** verworfen, nach einem **Update** nicht (anders als in 1.6.1 beschrieben). Ein Update mit geändertem Konstruktor hing deshalb bei „Shopware arbeitet noch …“, und Shop/Cron meldeten „Too few arguments“, bis `var/cache/prod_*` von Hand gelöscht wurde. Jetzt wird der Container auch nach jedem Update verworfen
+- Zusätzlich wird der PHP-Opcache geleert, damit kein alter Plugin-Code weiterläuft
+
 # 1.6.1
 - Absicherung: Nach dem Austausch der Plugin-Dateien verwirft der Updater Shopwares kompilierten Service-Container. Bisher konnte ein Update, das Konstruktoren eines Plugins ändert, Shop und Administration mit Fehler 500 lahmlegen (Anzeige „Shopware arbeitet noch …“ hing), bis `var/cache` von Hand gelöscht wurde
 

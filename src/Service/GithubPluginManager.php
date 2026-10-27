@@ -222,6 +222,10 @@ class GithubPluginManager
                 $this->deployer->discard($backup);
             }
 
+            // Wie bei der Neuinstallation: Der nächste Schritt (Shopware-Update in einer eigenen Anfrage)
+            // muss den Container mit den neuen Dateien aufbauen, sonst endet er bei geändertem Konstruktor mit 500
+            $this->discardCompiledContainer($pluginName);
+
             $this->sourceLinkStore->recordInstallation($plugin->getId(), $repository, $candidate->ref);
 
             $this->logger->info('DhGithubUpdater: Plugin-Dateien aus GitHub aktualisiert.', [
@@ -550,6 +554,10 @@ class GithubPluginManager
 
         try {
             $this->cacheClearer->clearContainerCache();
+            // Ohne Zeitstempel-Prüfung im Opcache liefe sonst weiter der alte Plugin-Code
+            if (\function_exists('opcache_reset')) {
+                @opcache_reset();
+            }
         } catch (\Throwable $e) {
             $this->logger->warning('DhGithubUpdater: Service-Container konnte nach dem Update nicht verworfen werden – ggf. bin/console cache:clear ausführen.', [
                 'plugin' => $pluginName,
