@@ -128,6 +128,18 @@
             }
         },
         {
+            "repository": "DrdotHouse2106/SW6-Nova-Dezimal",
+            "pluginName": "NovaDezimal",
+            "name": "Nova Dezimal",
+            "vendor": "DrdotHouse",
+            "category": "storefront",
+            "license": "MIT",
+            "description": {
+                "de-DE": "Verkauf nach Meter oder Quadratmeter mit Dezimalwert (z. B. 2,35 m²) und Platten mit festem Maß – optional mit Mengenkorrektur im weclapp-Auftrag.",
+                "en-GB": "Sell by metre or square metre with a decimal value (e.g. 2.35 m²) and boards with a fixed size – optionally correcting the weclapp sales order."
+            }
+        },
+        {
             "repository": "shopware/SwagLanguagePack",
             "pluginName": "SwagLanguagePack",
             "name": "Sprachpaket",
