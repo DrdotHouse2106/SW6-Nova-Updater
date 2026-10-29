@@ -3,6 +3,7 @@
 namespace DhGithubUpdater\Service;
 
 use DhGithubUpdater\Config\UpdaterConfig;
+use DhGithubUpdater\Exception\GithubUpdaterException;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\Framework\Context;
@@ -26,6 +27,8 @@ class UpdateChecker
 
     private const CACHE_KEY = 'dh_github_updater_update_status_v1';
     private const CACHE_TTL = 7 * 86400;
+    // „Nach Updates suchen“ höchstens so oft wirklich bei GitHub nachfragen (API-Kontingent)
+    private const MIN_REFRESH_INTERVAL = 60;
 
     /**
      * @param EntityRepository<\Shopware\Core\Framework\Plugin\PluginCollection> $pluginRepository
@@ -55,7 +58,8 @@ class UpdateChecker
         $autoCheck = $this->config->isAutoCheckEnabled();
 
         $stale = $cached === null || (time() - (int) ($cached['checkedAt'] ?? 0)) >= self::INTERVAL;
-        if ($refresh || ($autoCheck && $stale)) {
+        $recent = $cached !== null && (time() - (int) ($cached['checkedAt'] ?? 0)) < self::MIN_REFRESH_INTERVAL;
+        if (($refresh && !$recent) || ($autoCheck && $stale)) {
             $cached = $this->run($context, $autoCheck && $this->config->isUpdateNotificationEnabled());
         }
 
@@ -71,6 +75,12 @@ class UpdateChecker
      */
     public function run(Context $context, bool $notify): array
     {
+        try {
+            $this->manager->cleanupPendingUpdates($context);
+        } catch (\Throwable $e) {
+            $this->logger->warning('DhGithubUpdater: Aufbewahrte Sicherungen konnten nicht aufgeräumt werden.', ['error' => $e->getMessage()]);
+        }
+
         $plugins = [];
         foreach ($this->sourceLinkStore->all() as $link) {
             $name = $link['pluginName'];
@@ -84,10 +94,13 @@ class UpdateChecker
                     'updates' => $result['updates'],
                 ];
             } catch (\Throwable $e) {
+                if (!$e instanceof GithubUpdaterException) {
+                    $this->logger->error('DhGithubUpdater: Update-Prüfung fehlgeschlagen.', ['plugin' => $name, 'exception' => $e]);
+                }
                 $plugins[$name] = [
                     'repository' => $link['repository'],
                     'installedCommit' => $link['installedCommit'],
-                    'error' => $e->getMessage(),
+                    'error' => $e instanceof GithubUpdaterException ? $e->getMessage() : 'Interner Fehler bei der Update-Prüfung. Details stehen im Shopware-Log (var/log).',
                     'updates' => [],
                 ];
             }

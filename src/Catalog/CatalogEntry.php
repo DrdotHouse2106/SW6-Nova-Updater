@@ -3,6 +3,7 @@
 namespace DhGithubUpdater\Catalog;
 
 use DhGithubUpdater\Github\RepositoryReference;
+use DhGithubUpdater\Security\RepositoryAllowList;
 
 /**
  * Ein Eintrag im Plugin-Katalog.
@@ -53,5 +54,20 @@ final class CatalogEntry
         }
 
         return false;
+    }
+
+    /**
+     * Darf eine Verknüpfung mit $linkedRepository automatisch auf diesen Eintrag umgestellt werden?
+     * Nur bei einem früheren Namen desselben Besitzers, und nur wenn das neue Repository erlaubt ist.
+     */
+    public function canRenameFrom(string $linkedRepository, RepositoryAllowList $allowList): bool
+    {
+        if (!$this->isFormerRepository($linkedRepository)) {
+            return false;
+        }
+
+        $owner = strtolower(explode('/', $linkedRepository)[0]);
+
+        return $owner === strtolower($this->repository->owner) && $allowList->isAllowed($this->repository);
     }
 }

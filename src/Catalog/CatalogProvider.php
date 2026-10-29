@@ -48,7 +48,18 @@ class CatalogProvider
             }
         }
 
-        return ['source' => 'bundled', 'entries' => CatalogParser::parse((string) file_get_contents($this->bundledFile))];
+        return ['source' => 'bundled', 'entries' => $this->loadBundled()];
+    }
+
+    /**
+     * Die mit dieser Updater-Version ausgelieferte Fassung. Nur sie darf bestehende
+     * Verknüpfungen umstellen – der Online-Katalog dient ausschließlich der Anzeige.
+     *
+     * @return list<CatalogEntry>
+     */
+    public function loadBundled(): array
+    {
+        return CatalogParser::parse((string) file_get_contents($this->bundledFile));
     }
 
     /**

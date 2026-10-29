@@ -15,7 +15,8 @@ rewritten from scratch with a focus on security.
 - Link a repository on any plugin card, check for updates and update. Shopware's regular
   update lifecycle (incl. migrations) runs afterwards.
 - Optional branch installs with commit tracking.
-- Automatic rollback if Shopware cannot read the new version.
+- Automatic rollback if Shopware cannot read the new version or if Shopware's update step
+  (e.g. a migration) fails afterwards. Migrations already executed are not reverted.
 
 ## Security
 
@@ -56,7 +57,9 @@ bin/console cache:clear
   Contributions welcome – see [CONTRIBUTING.md](CONTRIBUTING.md) (German).
 - **Release packages**: If the GitHub release of a tag has a plugin ZIP attached
   (`<PluginName>.zip`, `<PluginName>-<version>.zip` or the only ZIP), it is installed instead
-  of the source code – including built administration and `vendor/`.
+  of the source code – including built administration and `vendor/`. The SHA-256 digest
+  reported by GitHub is verified and the package version must match the tag's `composer.json`;
+  otherwise the tag's source code is used.
 - **Automatic update check**: scheduled task every 12 hours; updates appear directly on the
   plugin card and once as notification (bell). Without running scheduled tasks the check runs
   when "My extensions" is opened. Nothing is ever installed automatically.
@@ -64,7 +67,8 @@ bin/console cache:clear
 ## Configuration
 
 See *Settings → Extensions → GitHub plugin updater*: admins only (default on), allowed
-repositories (`owner/repo` or `owner/*`), allow branches (default off), GitHub token
+repositories (`owner/repo` or `owner/*`; since 1.7.0 an empty list is prefilled once with
+`DrdotHouse2106/*`, `FriendsOfShopware/*` and already linked repositories), allow branches (default off), GitHub token
 (required for private repositories, sent only to `api.github.com`), max download size, number of tags to check.
 
 ## Private repositories

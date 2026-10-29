@@ -75,7 +75,7 @@ class SafeZipExtractor
             if ($mode !== null) {
                 $type = $mode & self::S_IFMT;
                 if ($type === self::S_IFLNK) {
-                    throw new GithubUpdaterException(\sprintf('Das Archiv enthält einen symbolischen Link (%s). Aus Sicherheitsgründen wird es nicht installiert.', $name), 422);
+                    throw new GithubUpdaterException(\sprintf('Das Archiv enthält einen symbolischen Link (%s). Aus Sicherheitsgründen wird es nicht installiert.', self::displayName($name)), 422);
                 }
                 if ($type !== 0 && $type !== self::S_IFDIR && $type !== self::S_IFREG) {
                     throw new GithubUpdaterException('Das Archiv enthält nicht unterstützte Dateitypen.', 422);
@@ -168,6 +168,16 @@ class SafeZipExtractor
         if (!is_dir($directory) && !@mkdir($directory, 0775, true) && !is_dir($directory)) {
             throw new GithubUpdaterException('Verzeichnis konnte beim Entpacken nicht angelegt werden.', 500);
         }
+    }
+
+    /**
+     * Eintragsname für Fehlermeldungen: nur unverdächtige Zeichen, gekürzt (Meldungen werden als HTML angezeigt).
+     */
+    private static function displayName(string $name): string
+    {
+        $clean = (string) preg_replace('#[^A-Za-z0-9._/-]#', '_', $name);
+
+        return \strlen($clean) > 120 ? substr($clean, 0, 117) . '...' : $clean;
     }
 
     private function assertSafeName(string $name): void

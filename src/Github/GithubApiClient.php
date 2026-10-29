@@ -215,7 +215,8 @@ class GithubApiClient
     }
 
     /**
-     * Lädt einen Release-Anhang (fertiges Plugin-ZIP des Herstellers) herunter.
+     * Lädt einen Release-Anhang (fertiges Plugin-ZIP des Herstellers) herunter und prüft,
+     * sofern GitHub sie liefert, die SHA-256-Prüfsumme.
      */
     public function downloadReleaseAsset(RepositoryReference $repository, ReleaseAsset $asset, string $targetFile, int $maxBytes, ?string $token): void
     {
@@ -230,6 +231,10 @@ class GithubApiClient
             $maxBytes,
             $token,
         );
+
+        if ($asset->sha256 !== null && !hash_equals($asset->sha256, (string) hash_file('sha256', $targetFile))) {
+            throw new GithubUpdaterException('Die Prüfsumme des Release-Pakets stimmt nicht mit der Angabe von GitHub überein.', 422);
+        }
     }
 
     /**

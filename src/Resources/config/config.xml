@@ -19,8 +19,8 @@
             <name>allowedRepositories</name>
             <label>Allowed repositories</label>
             <label lang="de-DE">Erlaubte Repositories</label>
-            <helpText>One entry per line: "owner/repository" or "owner/*". Empty = all repositories are allowed (private ones only with a token).</helpText>
-            <helpText lang="de-DE">Ein Eintrag pro Zeile: "owner/repository" oder "owner/*". Leer = alle Repositories sind erlaubt (private nur mit Token).</helpText>
+            <helpText>One entry per line: "owner/repository" or "owner/*". Empty = all repositories are allowed (private ones only with a token). An empty list is prefilled once on installation/update with DrdotHouse2106/*, FriendsOfShopware/* and already linked repositories.</helpText>
+            <helpText lang="de-DE">Ein Eintrag pro Zeile: "owner/repository" oder "owner/*". Leer = alle Repositories sind erlaubt (private nur mit Token). Eine leere Liste wird bei Installation/Update einmalig mit DrdotHouse2106/*, FriendsOfShopware/* und bereits verknüpften Repositories vorbelegt.</helpText>
             <placeholder>FriendsOfShopware/*
 shopware/SwagPayPal</placeholder>
         </input-field>

@@ -4,6 +4,7 @@ namespace DhGithubUpdater\Controller;
 
 use DhGithubUpdater\Config\UpdaterConfig;
 use DhGithubUpdater\Exception\GithubUpdaterException;
+use DhGithubUpdater\Exception\UpdateRolledBackException;
 use DhGithubUpdater\Package\PackageInspector;
 use DhGithubUpdater\Service\GithubPluginManager;
 use DhGithubUpdater\Service\StepwiseLifecycle;
@@ -158,22 +159,28 @@ class GithubUpdaterController
      * Schritt 1 nach dem Ablegen der Dateien: Shopware-Update (Migrationen usw.) ohne Theme-Kompilierung.
      * Läuft in einer eigenen Anfrage, damit der neue Code geladen ist.
      */
-    #[Route(path: '/api/_action/dh-github-updater/lifecycle/update/{pluginName}', name: 'api.action.dh_github_updater.lifecycle_update', requirements: ['pluginName' => '[A-Za-z][A-Za-z0-9_]{0,99}'], methods: ['POST'])]
+    #[Route(path: '/api/_action/dh-github-updater/lifecycle/update/{pluginName}', name: 'api.action.dh_github_updater.lifecycle_update', requirements: ['pluginName' => '[A-Za-z][A-Za-z0-9_]{0,99}'], defaults: ['_acl' => ['system.plugin_maintain', 'system.plugin_upload']], methods: ['POST'])]
     public function lifecycleUpdate(string $pluginName, Context $context): JsonResponse
     {
-        return $this->handle($context, true, fn (): array => $this->stepwise->update($pluginName, $context));
+        return $this->handle($context, true, fn (): array => $this->manager->runLifecycleUpdate(
+            $pluginName,
+            fn (): array => $this->stepwise->update($pluginName, $context),
+            $context,
+        ));
     }
 
-    #[Route(path: '/api/_action/dh-github-updater/lifecycle/activate/{pluginName}', name: 'api.action.dh_github_updater.lifecycle_activate', requirements: ['pluginName' => '[A-Za-z][A-Za-z0-9_]{0,99}'], methods: ['POST'])]
+    #[Route(path: '/api/_action/dh-github-updater/lifecycle/activate/{pluginName}', name: 'api.action.dh_github_updater.lifecycle_activate', requirements: ['pluginName' => '[A-Za-z][A-Za-z0-9_]{0,99}'], defaults: ['_acl' => ['system.plugin_maintain', 'system.plugin_upload']], methods: ['POST'])]
     public function lifecycleActivate(string $pluginName, Context $context): JsonResponse
     {
-        return $this->handle($context, true, fn (): array => $this->stepwise->installAndActivate($pluginName, $context));
+        return $this->handle($context, true, fn (): array => $this->manager->withDeployLock(
+            fn (): array => $this->stepwise->installAndActivate($pluginName, $context),
+        ));
     }
 
     /**
      * Schritt 2: Theme genau eines Verkaufskanals kompilieren.
      */
-    #[Route(path: '/api/_action/dh-github-updater/compile-theme', name: 'api.action.dh_github_updater.compile_theme', methods: ['POST'])]
+    #[Route(path: '/api/_action/dh-github-updater/compile-theme', name: 'api.action.dh_github_updater.compile_theme', defaults: ['_acl' => ['system.plugin_maintain', 'system.plugin_upload']], methods: ['POST'])]
     public function compileTheme(Request $request, Context $context): JsonResponse
     {
         return $this->handle($context, true, function () use ($request, $context): array {
@@ -198,7 +205,12 @@ class GithubUpdaterController
 
             return new JsonResponse(['success' => true] + $action());
         } catch (GithubUpdaterException $e) {
-            return new JsonResponse(['success' => false, 'message' => $e->getMessage()], $e->getStatusCode());
+            $body = ['success' => false, 'message' => $e->getMessage()];
+            if ($e instanceof UpdateRolledBackException) {
+                $body['restored'] = true;
+            }
+
+            return new JsonResponse($body, $e->getStatusCode());
         } catch (\Throwable $e) {
             $this->logger->error('DhGithubUpdater: Unerwarteter Fehler.', ['exception' => $e]);
 

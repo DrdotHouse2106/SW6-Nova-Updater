@@ -2,6 +2,7 @@
 
 namespace DhGithubUpdater\Tests\Unit;
 
+use DhGithubUpdater\Exception\GithubUpdaterException;
 use DhGithubUpdater\Github\GithubApiClient;
 use DhGithubUpdater\Github\ReleaseAsset;
 use DhGithubUpdater\Github\RepositoryReference;
@@ -64,5 +65,40 @@ class ReleaseAssetTest extends TestCase
         unlink($target);
         static::assertStringContainsString('application/octet-stream', $seen['https://api.github.com/repos/owner/repo/releases/assets/5']);
         static::assertStringNotContainsString('ghp_secrettoken', $seen['https://release-assets.githubusercontent.com/asset/5']);
+    }
+
+    public function testReadsSha256DigestFromApi(): void
+    {
+        $hash = hash('sha256', 'ZIP');
+
+        static::assertSame($hash, ReleaseAsset::fromApi(['id' => 1, 'name' => 'plugin.zip', 'size' => 3, 'digest' => 'sha256:' . strtoupper($hash)])?->sha256);
+        static::assertNull(ReleaseAsset::fromApi(['id' => 1, 'name' => 'plugin.zip', 'size' => 3, 'digest' => 'md5:abc'])?->sha256);
+        static::assertNull(ReleaseAsset::fromApi(['id' => 1, 'name' => 'plugin.zip', 'size' => 3])?->sha256);
+    }
+
+    public function testAcceptsAssetWithMatchingDigest(): void
+    {
+        $client = new GithubApiClient(new MockHttpClient(static fn () => new MockResponse('ZIP')));
+
+        $target = (string) tempnam(sys_get_temp_dir(), 'dh-ghu-');
+        $client->downloadReleaseAsset(RepositoryReference::fromFullName('owner/repo'), new ReleaseAsset(5, 'MyPlugin.zip', 3, hash('sha256', 'ZIP')), $target, 1024, null);
+
+        static::assertSame('ZIP', file_get_contents($target));
+        unlink($target);
+    }
+
+    public function testRejectsAssetWithForeignDigest(): void
+    {
+        $client = new GithubApiClient(new MockHttpClient(static fn () => new MockResponse('BAD')));
+
+        $target = (string) tempnam(sys_get_temp_dir(), 'dh-ghu-');
+        try {
+            $client->downloadReleaseAsset(RepositoryReference::fromFullName('owner/repo'), new ReleaseAsset(5, 'MyPlugin.zip', 3, hash('sha256', 'ZIP')), $target, 1024, null);
+            static::fail('Ein Paket mit abweichender Prüfsumme darf nicht akzeptiert werden.');
+        } catch (GithubUpdaterException $e) {
+            static::assertStringContainsString('Prüfsumme', $e->getMessage());
+        } finally {
+            unlink($target);
+        }
     }
 }

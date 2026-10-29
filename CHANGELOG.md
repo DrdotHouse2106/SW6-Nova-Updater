@@ -1,3 +1,13 @@
+# 1.7.0
+- Sicherheit: Verknüpfungen werden nur noch laut dem mit dem Updater ausgelieferten Katalog auf einen neuen Repository-Namen umgestellt (nicht mehr laut Online-Katalog), nur innerhalb desselben GitHub-Besitzers und nur, wenn der neue Name in den erlaubten Repositories steht. Jede Umstellung wird protokolliert, verweigerte Umstellungen ebenfalls
+- Sicherheit: Liste „Erlaubte Repositories“ wird bei Installation/Update einmalig vorbelegt, wenn sie leer ist (leer = alles erlaubt): `DrdotHouse2106/*`, `FriendsOfShopware/*` sowie bereits verknüpfte Repositories anderer Besitzer. Eine gepflegte Liste bleibt unverändert
+- Sicherheit: Release-Pakete werden gegen die SHA-256-Prüfsumme von GitHub geprüft und müssen dieselbe Version wie die `composer.json` des Tags tragen, sonst wird der Quellcode des Tags verwendet
+- Update-Sicherung bleibt erhalten, bis Shopwares Update-Schritt (Migrationen) durchgelaufen ist. Scheitert er, wird der vorherige Stand automatisch wiederhergestellt und gemeldet. Nicht abgeschlossene Updates behalten ihre Sicherung bis zu 7 Tage
+- Shopwares Update- und Aktivierungsschritt laufen unter derselben Sperre wie der Dateitausch; diese Schritte und das Kompilieren der Themes verlangen jetzt wie Installation und Update zusätzlich das Recht `system.plugin_upload`
+- Downgrade-Schutz prüft auch die Version im tatsächlich geladenen Paket; nur Tags mit lesbarer Versionsnummer sind installierbar
+- Update-Prüfung zeigt nur noch eigene Fehlertexte (technische Details stehen im Log); „Nach Updates suchen“ fragt höchstens einmal pro Minute bei GitHub nach
+- Dateinamen aus Archiven erscheinen in Fehlermeldungen nur noch bereinigt
+
 # 1.6.2
 - Fehlerbehebung: Der kompilierte Service-Container wurde bisher nur nach einer **Neuinstallation** verworfen, nach einem **Update** nicht (anders als in 1.6.1 beschrieben). Ein Update mit geändertem Konstruktor hing deshalb bei „Shopware arbeitet noch …“, und Shop/Cron meldeten „Too few arguments“, bis `var/cache/prod_*` von Hand gelöscht wurde. Jetzt wird der Container auch nach jedem Update verworfen
 - Zusätzlich wird der PHP-Opcache geleert, damit kein alter Plugin-Code weiterläuft

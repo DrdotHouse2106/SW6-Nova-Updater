@@ -131,6 +131,24 @@ class SourceLinkStore
         ]);
     }
 
+    /**
+     * Nach dem Zurückspielen einer Sicherung wieder den vorherigen Installationsstand vermerken.
+     */
+    public function restoreInstallation(string $pluginId, ?string $ref, ?string $refType, ?string $commit): void
+    {
+        $this->connection->executeStatement(<<<'SQL'
+            UPDATE `dh_github_updater_source`
+            SET `installed_ref` = :ref, `installed_ref_type` = :refType, `installed_commit` = :commit, `updated_at` = :now
+            WHERE `plugin_id` = :pluginId
+            SQL, [
+            'ref' => $ref,
+            'refType' => $refType,
+            'commit' => $commit,
+            'now' => (new \DateTimeImmutable())->format(Defaults::STORAGE_DATE_TIME_FORMAT),
+            'pluginId' => Uuid::fromHexToBytes($pluginId),
+        ]);
+    }
+
     public function unlink(string $pluginId): void
     {
         $this->connection->executeStatement(

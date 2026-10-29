@@ -20,15 +20,20 @@ wurde aber von Grund auf neu und mit Fokus auf Sicherheit geschrieben.
   läuft der reguläre Shopware-Update-Prozess (inkl. Migrationen).
 - **Branch-Updates**: Bei Installation aus einem Branch wird der Commit gespeichert, neue
   Commits werden als Update erkannt (muss in der Konfiguration aktiviert werden).
-- **Rollback**: Schlägt ein Update beim Einlesen fehl, wird der vorherige Stand
-  automatisch wiederhergestellt.
+- **Rollback**: Schlägt ein Update beim Einlesen fehl oder scheitert danach Shopwares
+  Update-Schritt (z. B. eine Migration), wird der vorherige Stand der Plugin-Dateien
+  automatisch wiederhergestellt. Bereits ausgeführte Migrationen nimmt Shopware dabei nicht
+  zurück. Bleibt der Update-Schritt aus (Browser geschlossen), wird die Sicherung 7 Tage
+  aufbewahrt.
 - **Plugin-Katalog** (neu in 1.2.0): Button „Plugin-Katalog“ mit geprüften Plugins
   (PayPal, Sprachpaket, FriendsOfShopware, Zahlungsanbieter, Nova-Plugins …) – Suche,
   Kategorien, Installieren oder Verknüpfen mit einem Klick. Eigene Plugins können
   [beigetragen](CONTRIBUTING.md) werden.
 - **Fertige Release-Pakete** (neu in 1.2.0): Hängt am GitHub-Release ein Plugin-ZIP, wird
   dieses statt des Quellcodes installiert – mit gebauter Administration und ggf. `vendor/`,
-  genau wie beim manuellen ZIP-Upload.
+  genau wie beim manuellen ZIP-Upload. Die SHA-256-Prüfsumme laut GitHub wird geprüft, und die
+  Version im Paket muss zur `composer.json` des Tags passen; sonst wird der Quellcode des Tags
+  verwendet.
 - **Automatische Update-Prüfung** (neu in 1.2.0): alle 12 Stunden, neue Versionen erscheinen
   direkt auf der Plugin-Karte und einmalig als Benachrichtigung (Glocke).
 
@@ -100,7 +105,7 @@ Die Oberfläche der Administration ist **fertig gebaut** im Repository enthalten
 | Einstellung | Standard | Beschreibung |
 |---|---|---|
 | Nur Administratoren | an | Wenn aus, reichen die ACL-Rechte `system.plugin_maintain` + `system.plugin_upload`. |
-| Erlaubte Repositories | leer (= alle) | Ein Eintrag pro Zeile: `owner/repo` oder `owner/*`. **Empfohlen.** |
+| Erlaubte Repositories | `DrdotHouse2106/*`, `FriendsOfShopware/*` | Ein Eintrag pro Zeile: `owner/repo` oder `owner/*`. Leer = alle erlaubt. Ab 1.7.0 wird eine leere Liste bei Installation/Update einmalig vorbelegt (bereits verknüpfte Repositories anderer Besitzer werden mit eingetragen); eine gepflegte Liste bleibt unverändert. |
 | Installation aus Branches | aus | Branches sind keine festen Releases. Tags werden immer bevorzugt. |
 | GitHub-Token | leer | Nötig für private Repositories, erhöht außerdem das API-Limit von 60 auf 5000 Anfragen/Stunde. Siehe [Private Repositories](#private-repositories). |
 | Maximale Downloadgröße | 50 MB | Schutz vor übergroßen Archiven. |
@@ -338,7 +343,7 @@ Hier sammeln wir Hürden, die bei Installation und Betrieb tatsächlich aufgetre
 
 **Ursache:** Nach einer Umbenennung (z. B. `SW6-Theme` → `SW6-Nova-Theme`) ist im Shop noch der alte Name gespeichert. GitHub leitet alte Adressen weiter, Updates funktionieren also weiter – im Katalog stand das Plugin aber als „mit anderem Repository verknüpft“
 
-**Lösung:** Ab Version 1.4.0 trägt der Katalog die früheren Namen (`formerRepositories`). Beim Öffnen des Katalogs bzw. der Erweiterungsliste stellt der Updater solche Verknüpfungen automatisch auf den neuen Namen um. Eigene, nicht im Katalog stehende Plugins: unter „Repository verknüpfen“ den neuen Namen eintragen. Ist in der Konfiguration eine Liste erlaubter Repositories gepflegt, dort die neuen Namen ergänzen (oder `DrdotHouse2106/*`)
+**Lösung:** Ab Version 1.4.0 trägt der Katalog die früheren Namen (`formerRepositories`). Beim Öffnen des Katalogs bzw. der Erweiterungsliste stellt der Updater solche Verknüpfungen automatisch auf den neuen Namen um – ab 1.7.0 nur laut dem mit dem Updater ausgelieferten Katalog (nicht dem Online-Katalog), nur innerhalb desselben GitHub-Besitzers und nur, wenn der neue Name erlaubt ist. Jede Umstellung steht im Shopware-Log. Eigene, nicht im Katalog stehende Plugins: unter „Repository verknüpfen“ den neuen Namen eintragen. Ist in der Konfiguration eine Liste erlaubter Repositories gepflegt, dort die neuen Namen ergänzen (oder `DrdotHouse2106/*`)
 
 ### Privates Repository: „nicht gefunden“
 

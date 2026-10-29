@@ -81,6 +81,44 @@ class UpdaterConfig
         $this->systemConfigService->set('DhGithubUpdater.state.notifiedVersions', $versions);
     }
 
+    /**
+     * Updates, deren Shopware-Lebenszyklus (Schritt 2) noch aussteht, samt aufbewahrter Sicherung.
+     *
+     * @return array<string, array{backup: string, createdAt: int, fromVersion: string, ref: ?string, refType: ?string, commit: ?string}>
+     */
+    public function getPendingUpdates(): array
+    {
+        $value = $this->systemConfigService->get('DhGithubUpdater.state.pendingUpdates');
+        if (!\is_array($value)) {
+            return [];
+        }
+
+        $pending = [];
+        foreach ($value as $pluginName => $entry) {
+            if (!\is_string($pluginName) || !\is_array($entry) || !\is_string($entry['backup'] ?? null) || !\is_int($entry['createdAt'] ?? null)) {
+                continue;
+            }
+            $pending[$pluginName] = [
+                'backup' => $entry['backup'],
+                'createdAt' => $entry['createdAt'],
+                'fromVersion' => \is_string($entry['fromVersion'] ?? null) ? $entry['fromVersion'] : '',
+                'ref' => \is_string($entry['ref'] ?? null) ? $entry['ref'] : null,
+                'refType' => \is_string($entry['refType'] ?? null) ? $entry['refType'] : null,
+                'commit' => \is_string($entry['commit'] ?? null) ? $entry['commit'] : null,
+            ];
+        }
+
+        return $pending;
+    }
+
+    /**
+     * @param array<string, array{backup: string, createdAt: int, fromVersion: string, ref: ?string, refType: ?string, commit: ?string}> $pending
+     */
+    public function setPendingUpdates(array $pending): void
+    {
+        $this->systemConfigService->set('DhGithubUpdater.state.pendingUpdates', $pending);
+    }
+
     public function isRemoteCatalogEnabled(): bool
     {
         $value = $this->systemConfigService->get(self::PREFIX . 'remoteCatalog');

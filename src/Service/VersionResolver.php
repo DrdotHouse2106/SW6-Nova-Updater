@@ -78,7 +78,8 @@ class VersionResolver
         };
 
         foreach ($refs as $ref) {
-            if ($ref->name !== $refName) {
+            // Wie in der Versionsliste: nur Tags mit lesbarer Versionsnummer (sonst greift der Downgrade-Schutz nicht)
+            if ($ref->name !== $refName || ($refType === GitRef::TYPE_TAG && !CompatibilityChecker::isParsableVersion($ref->name))) {
                 continue;
             }
 

@@ -3,7 +3,9 @@
 namespace DhGithubUpdater\Tests\Unit;
 
 use DhGithubUpdater\Catalog\CatalogParser;
+use DhGithubUpdater\Config\DefaultAllowList;
 use DhGithubUpdater\Exception\GithubUpdaterException;
+use DhGithubUpdater\Security\RepositoryAllowList;
 use PHPUnit\Framework\TestCase;
 
 class CatalogParserTest extends TestCase
@@ -22,6 +24,21 @@ class CatalogParserTest extends TestCase
         foreach ($entries as $entry) {
             static::assertArrayHasKey('de-DE', $entry->description, $entry->pluginName . ': deutsche Beschreibung fehlt');
             static::assertArrayHasKey('en-GB', $entry->description, $entry->pluginName . ': englische Beschreibung fehlt');
+        }
+    }
+
+    /**
+     * Umbenennungen im mitgelieferten Katalog müssen auch mit der vorbelegten Liste erlaubter
+     * Repositories automatisch greifen (gleicher Besitzer, erlaubt).
+     */
+    public function testBundledRenamesStayWithinOwnerAndDefaultAllowList(): void
+    {
+        $allowList = new RepositoryAllowList(DefaultAllowList::build([]));
+
+        foreach (CatalogParser::parse((string) file_get_contents(__DIR__ . '/../../src/Resources/catalog/plugins.json')) as $entry) {
+            foreach ($entry->formerRepositories as $former) {
+                static::assertTrue($entry->canRenameFrom($former->getFullName(), $allowList), $entry->pluginName . ': ' . $former->getFullName());
+            }
         }
     }
 

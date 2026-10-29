@@ -301,6 +301,11 @@ Shopware.Component.override('sw-extension-card-base', {
                     try {
                         themeJobs = (await this.dhGithubUpdaterApiService.lifecycleUpdate(this.extension.name)).themeJobs || [];
                     } catch (error) {
+                        // Update gescheitert, der vorherige Stand ist bereits wiederhergestellt
+                        if (error?.response?.data?.restored) {
+                            throw error;
+                        }
+
                         // Läuft Shopware noch? Bis zu 5 Minuten nachsehen, bevor eine Warnung erscheint
                         this.dhGithub.progress = this.$tc('dh-github-updater.progress.waiting');
                         const done = await DhGithubUpdaterApiService.waitForPlugin(

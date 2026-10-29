@@ -13,6 +13,8 @@ final class ReleaseAsset
         public readonly int $id,
         public readonly string $name,
         public readonly int $size,
+        // SHA-256 des Anhangs laut GitHub (hex); null bei älteren Releases ohne Angabe
+        public readonly ?string $sha256 = null,
     ) {
     }
 
@@ -30,7 +32,10 @@ final class ReleaseAsset
             return null;
         }
 
-        return new self($id, $name, $size);
+        $digest = $data['digest'] ?? null;
+        $sha256 = \is_string($digest) && preg_match('/^sha256:([0-9a-f]{64})$/i', $digest, $match) ? strtolower($match[1]) : null;
+
+        return new self($id, $name, $size, $sha256);
     }
 
     /**
