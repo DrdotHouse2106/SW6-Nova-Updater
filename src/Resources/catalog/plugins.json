@@ -140,6 +140,18 @@
             }
         },
         {
+            "repository": "DrdotHouse2106/SW6-Nova-Termine",
+            "pluginName": "NovaTermine",
+            "name": "Nova Termine",
+            "vendor": "DrdotHouse",
+            "category": "storefront",
+            "license": "MIT",
+            "description": {
+                "de-DE": "Termine wie Treffen, Teilemärkte und Messen in der Administration pflegen und als Erlebniswelten-Element „Terminliste“ anzeigen – mit „Treffen melden“-Formular und automatischem Ausblenden vergangener Termine.",
+                "en-GB": "Maintain events such as meets, parts fairs and trade shows in the administration and show them as a shopping experience element – with a suggestion form and automatic hiding of past events."
+            }
+        },
+        {
             "repository": "shopware/SwagLanguagePack",
             "pluginName": "SwagLanguagePack",
             "name": "Sprachpaket",
