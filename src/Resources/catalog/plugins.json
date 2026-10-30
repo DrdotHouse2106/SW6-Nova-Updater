@@ -152,6 +152,18 @@
             }
         },
         {
+            "repository": "DrdotHouse2106/SW6-Nova-Captcha",
+            "pluginName": "NovaCaptcha",
+            "name": "Nova Captcha",
+            "vendor": "DrdotHouse",
+            "category": "storefront",
+            "license": "MIT",
+            "description": {
+                "de-DE": "Unsichtbares Captcha ohne Google als Ersatz für reCAPTCHA: Der Browser löst eine kleine Rechenaufgabe, dazu Zeitfalle und Newsletter-Bremse – keine Cookies, keine externen Anfragen.",
+                "en-GB": "Invisible captcha without Google as a reCAPTCHA replacement: the browser solves a small computational puzzle, plus a time trap and a newsletter limit – no cookies, no external requests."
+            }
+        },
+        {
             "repository": "shopware/SwagLanguagePack",
             "pluginName": "SwagLanguagePack",
             "name": "Sprachpaket",
