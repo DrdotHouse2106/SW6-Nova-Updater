@@ -164,6 +164,18 @@
             }
         },
         {
+            "repository": "DrdotHouse2106/SW6-Nova-Versandkosten",
+            "pluginName": "NovaVersandkosten",
+            "name": "Nova Versandkosten",
+            "vendor": "DrdotHouse",
+            "category": "shipping",
+            "license": "MIT",
+            "description": {
+                "de-DE": "Versandkosten aus den eigenen Einkaufstarifen berechnen (JSON/CSV-Import): Paketbildung, Warenpost/Kleinpaket/DPD/DHL, Sperrgut, Peak, Ausland, Spedition über Cargoboard, Zustelldatum und Margenkontrolle an der Bestellung.",
+                "en-GB": "Calculate shipping costs from your own carrier purchase tariffs (JSON/CSV import): parcel building, letter/small parcel/DPD/DHL, bulky goods, peak, abroad, freight via Cargoboard, delivery date and margin control on the order."
+            }
+        },
+        {
             "repository": "shopware/SwagLanguagePack",
             "pluginName": "SwagLanguagePack",
             "name": "Sprachpaket",
