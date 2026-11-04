@@ -2,6 +2,7 @@
 
 namespace DhGithubUpdater\Github;
 
+use DhGithubUpdater\Exception\ChecksumException;
 use DhGithubUpdater\Exception\GithubUpdaterException;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\Exception\ExceptionInterface as HttpClientException;
@@ -154,11 +155,25 @@ class GithubApiClient
             }
 
             $assets = [];
+            $checksums = [];
             foreach (\is_array($release['assets'] ?? null) ? $release['assets'] : [] as $asset) {
-                $parsed = \is_array($asset) ? ReleaseAsset::fromApi($asset) : null;
+                if (!\is_array($asset)) {
+                    continue;
+                }
+                $checksum = ReleaseAsset::checksumFromApi($asset);
+                if ($checksum !== null) {
+                    $checksums[$checksum[0]] = $checksum[1];
+                    continue;
+                }
+                $parsed = ReleaseAsset::fromApi($asset);
                 if ($parsed !== null) {
                     $assets[] = $parsed;
                 }
+            }
+
+            // Begleitdatei „<Paket>.zip.sha256“ dem Paket zuordnen
+            foreach ($assets as $index => $asset) {
+                $assets[$index] = $asset->withChecksumAsset($checksums[strtolower($asset->name)] ?? null);
             }
 
             if ($assets !== []) {
@@ -215,13 +230,21 @@ class GithubApiClient
     }
 
     /**
-     * Lädt einen Release-Anhang (fertiges Plugin-ZIP des Herstellers) herunter und prüft,
-     * sofern GitHub sie liefert, die SHA-256-Prüfsumme.
+     * Lädt einen Release-Anhang (fertiges Plugin-ZIP des Herstellers) herunter und prüft die SHA-256-Prüfsumme:
+     * gegen den Digest, den GitHub zum Anhang angibt, und – falls das Release eine Begleitdatei
+     * „<Paket>.zip.sha256“ enthält – zusätzlich gegen diese. Mit $requireChecksum wird ein Paket ohne beides
+     * gar nicht erst geladen (fail closed).
+     *
+     * @throws ChecksumException Paket nicht prüfbar oder Prüfsumme weicht ab
      */
-    public function downloadReleaseAsset(RepositoryReference $repository, ReleaseAsset $asset, string $targetFile, int $maxBytes, ?string $token): void
+    public function downloadReleaseAsset(RepositoryReference $repository, ReleaseAsset $asset, string $targetFile, int $maxBytes, ?string $token, bool $requireChecksum = false): void
     {
         if ($asset->size > $maxBytes) {
             throw new GithubUpdaterException('Das Archiv überschreitet die erlaubte Downloadgröße.');
+        }
+
+        if ($requireChecksum && !$asset->isVerifiable()) {
+            throw new ChecksumException('Das Release-Paket lässt sich nicht prüfen: GitHub nennt keine Prüfsumme und das Release enthält keine .sha256-Datei. Installation abgebrochen (Einstellung „Nur geprüfte Release-Pakete installieren“).', 422);
         }
 
         $this->downloadToFile(
@@ -232,9 +255,48 @@ class GithubApiClient
             $token,
         );
 
-        if ($asset->sha256 !== null && !hash_equals($asset->sha256, (string) hash_file('sha256', $targetFile))) {
-            throw new GithubUpdaterException('Die Prüfsumme des Release-Pakets stimmt nicht mit der Angabe von GitHub überein.', 422);
+        $actual = (string) hash_file('sha256', $targetFile);
+        if ($asset->sha256 !== null && !hash_equals($asset->sha256, $actual)) {
+            throw new ChecksumException('Die Prüfsumme des Release-Pakets stimmt nicht mit der Angabe von GitHub überein.', 422);
         }
+
+        if ($asset->checksumAssetId !== null) {
+            $expected = $this->downloadChecksum($repository, $asset, $asset->checksumAssetId, $token);
+            if (!hash_equals($expected, $actual)) {
+                throw new ChecksumException('Die Prüfsumme des Release-Pakets stimmt nicht mit der .sha256-Datei des Releases überein.', 422);
+            }
+        }
+    }
+
+    private function downloadChecksum(RepositoryReference $repository, ReleaseAsset $asset, int $checksumAssetId, ?string $token): string
+    {
+        $file = tempnam(sys_get_temp_dir(), 'dh-ghu-sum-');
+        if ($file === false) {
+            throw new GithubUpdaterException('Temporäre Datei konnte nicht angelegt werden.', 500);
+        }
+
+        try {
+            $this->downloadToFile(
+                self::API_BASE . $repository->getApiPath() . '/releases/assets/' . $checksumAssetId,
+                ['Accept' => 'application/octet-stream'],
+                $file,
+                ReleaseAsset::MAX_CHECKSUM_BYTES,
+                $token,
+            );
+            $expected = ReleaseAsset::parseChecksumFile((string) file_get_contents($file), $asset->name);
+        } catch (ChecksumException $e) {
+            throw $e;
+        } catch (GithubUpdaterException $e) {
+            throw new ChecksumException('Die .sha256-Datei des Releases konnte nicht geladen werden.', 502, $e);
+        } finally {
+            @unlink($file);
+        }
+
+        if ($expected === null) {
+            throw new ChecksumException('Die .sha256-Datei des Releases ist ungültig oder gehört zu einem anderen Paket.', 422);
+        }
+
+        return $expected;
     }
 
     /**

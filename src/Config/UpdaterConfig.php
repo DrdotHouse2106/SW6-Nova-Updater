@@ -33,6 +33,17 @@ class UpdaterConfig
         return $this->systemConfigService->getBool(self::PREFIX . 'allowBranches');
     }
 
+    /**
+     * Release-Pakete nur installieren, wenn ihre Prüfsumme geprüft werden kann (Digest von GitHub oder
+     * .sha256-Datei im Release). Standard: an – auch für bestehende Installationen, die den Wert noch nicht kennen.
+     */
+    public function isVerifiedPackagesOnly(): bool
+    {
+        $value = $this->systemConfigService->get(self::PREFIX . 'verifiedPackagesOnly');
+
+        return $value === null || (bool) $value;
+    }
+
     public function isAdminOnly(): bool
     {
         $value = $this->systemConfigService->get(self::PREFIX . 'adminOnly');

@@ -1,3 +1,10 @@
+# 1.8.0
+- Sicherheit: Liegt im GitHub-Release neben dem Plugin-ZIP eine Prüfsummen-Datei `<Paket>.zip.sha256` (Format von `sha256sum`), wird das Paket zusätzlich dagegen geprüft. Die Nova-Plugins veröffentlichen diese Datei ab sofort mit jedem Release
+- Sicherheit: Neue Einstellung **„Nur geprüfte Release-Pakete installieren“** (Standard: an, auch für bestehende Installationen). Ein Release-ZIP, für das weder GitHub eine Prüfsumme nennt noch eine `.sha256`-Datei vorliegt, wird nicht installiert, das Update bricht mit Hinweis ab. GitHub liefert die Prüfsumme seit 2025 für alle neu hochgeladenen Anhänge; betroffen sind also nur sehr alte Releases. Für solche die Einstellung ausschalten
+- Sicherheit: Weicht die Prüfsumme ab (GitHub-Angabe oder `.sha256`-Datei) oder ist die `.sha256`-Datei unlesbar, wird das Update jetzt abgebrochen und protokolliert, statt auf den Quellcode des Tags auszuweichen
+- Release-Workflow: veröffentlicht zum ZIP die `.sha256`-Datei; GitHub Actions sind auf feste Commit-IDs gepinnt
+- Hinweis: Die `.sha256`-Datei liegt im selben Release wie das ZIP. Sie schützt gegen ein still ausgetauschtes ZIP (dafür muss zusätzlich die Prüfsummen-Datei ersetzt werden), ersetzt aber keine Signatur
+
 # 1.7.0
 - Sicherheit: Verknüpfungen werden nur noch laut dem mit dem Updater ausgelieferten Katalog auf einen neuen Repository-Namen umgestellt (nicht mehr laut Online-Katalog), nur innerhalb desselben GitHub-Besitzers und nur, wenn der neue Name in den erlaubten Repositories steht. Jede Umstellung wird protokolliert, verweigerte Umstellungen ebenfalls
 - Sicherheit: Liste „Erlaubte Repositories“ wird bei Installation/Update einmalig vorbelegt, wenn sie leer ist (leer = alles erlaubt): `DrdotHouse2106/*`, `FriendsOfShopware/*` sowie bereits verknüpfte Repositories anderer Besitzer. Eine gepflegte Liste bleibt unverändert

@@ -33,6 +33,15 @@ shopware/SwagPayPal</placeholder>
             <helpText lang="de-DE">Branches sind keine festen Releases und können unfertigen Code enthalten. Tags werden immer bevorzugt.</helpText>
             <defaultValue>false</defaultValue>
         </input-field>
+
+        <input-field type="bool">
+            <name>verifiedPackagesOnly</name>
+            <label>Only install verified release packages</label>
+            <label lang="de-DE">Nur geprüfte Release-Pakete installieren</label>
+            <helpText>A release ZIP is only installed if its SHA-256 checksum can be verified (digest provided by GitHub and/or a ".sha256" file in the release). Otherwise the update is aborted. A mismatching checksum always aborts the update. Only disable this for old releases without a checksum.</helpText>
+            <helpText lang="de-DE">Ein Release-ZIP wird nur installiert, wenn sich seine SHA-256-Prüfsumme prüfen lässt (Angabe von GitHub und/oder „.sha256“-Datei im Release). Sonst wird das Update abgebrochen. Eine abweichende Prüfsumme bricht das Update immer ab. Nur für alte Releases ohne Prüfsumme ausschalten.</helpText>
+            <defaultValue>true</defaultValue>
+        </input-field>
     </card>
 
     <card>

@@ -25,7 +25,7 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
 
@@ -84,6 +84,13 @@ jobs:
           git archive --format=zip --prefix="$name/" -o "$name-${{ steps.meta.outputs.version }}.zip" HEAD -- "${paths[@]}"
           unzip -l "$name-${{ steps.meta.outputs.version }}.zip" | tail -1
 
+      - name: Prüfsumme (.sha256) zum ZIP erzeugen
+        if: steps.exists.outputs.skip == 'false'
+        run: |
+          zip="${{ steps.meta.outputs.name }}-${{ steps.meta.outputs.version }}.zip"
+          sha256sum "$zip" > "$zip.sha256"
+          cat "$zip.sha256"
+
       - name: Release anlegen
         if: steps.exists.outputs.skip == 'false'
         env:
@@ -91,6 +98,7 @@ jobs:
         run: |
           gh release create "${{ steps.meta.outputs.tag }}" \
             "${{ steps.meta.outputs.name }}-${{ steps.meta.outputs.version }}.zip" \
+            "${{ steps.meta.outputs.name }}-${{ steps.meta.outputs.version }}.zip.sha256" \
             --target "$GITHUB_SHA" \
             --title "${{ steps.meta.outputs.name }} ${{ steps.meta.outputs.version }}" \
             --notes-file notes.md

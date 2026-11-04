@@ -31,9 +31,11 @@ wurde aber von Grund auf neu und mit Fokus auf Sicherheit geschrieben.
   [beigetragen](CONTRIBUTING.md) werden.
 - **Fertige Release-Pakete** (neu in 1.2.0): Hängt am GitHub-Release ein Plugin-ZIP, wird
   dieses statt des Quellcodes installiert – mit gebauter Administration und ggf. `vendor/`,
-  genau wie beim manuellen ZIP-Upload. Die SHA-256-Prüfsumme laut GitHub wird geprüft, und die
-  Version im Paket muss zur `composer.json` des Tags passen; sonst wird der Quellcode des Tags
-  verwendet.
+  genau wie beim manuellen ZIP-Upload. Die SHA-256-Prüfsumme laut GitHub wird geprüft, ebenso
+  (ab 1.8.0) eine mitveröffentlichte Datei `<Paket>.zip.sha256`; bei Abweichung bricht das Update
+  ab. Mit „Nur geprüfte Release-Pakete installieren“ (Standard: an) wird ein Paket ohne jede
+  Prüfsumme nicht installiert. Die Version im Paket muss zur `composer.json` des Tags passen; sonst
+  wird der Quellcode des Tags verwendet.
 - **Automatische Update-Prüfung** (neu in 1.2.0): alle 12 Stunden, neue Versionen erscheinen
   direkt auf der Plugin-Karte und einmalig als Benachrichtigung (Glocke).
 
@@ -107,6 +109,7 @@ Die Oberfläche der Administration ist **fertig gebaut** im Repository enthalten
 | Nur Administratoren | an | Wenn aus, reichen die ACL-Rechte `system.plugin_maintain` + `system.plugin_upload`. |
 | Erlaubte Repositories | `DrdotHouse2106/*`, `FriendsOfShopware/*` | Ein Eintrag pro Zeile: `owner/repo` oder `owner/*`. Leer = alle erlaubt. Ab 1.7.0 wird eine leere Liste bei Installation/Update einmalig vorbelegt (bereits verknüpfte Repositories anderer Besitzer werden mit eingetragen); eine gepflegte Liste bleibt unverändert. |
 | Installation aus Branches | aus | Branches sind keine festen Releases. Tags werden immer bevorzugt. |
+| Nur geprüfte Release-Pakete installieren | an | Ein Release-ZIP wird nur installiert, wenn sich seine SHA-256-Prüfsumme prüfen lässt (Angabe von GitHub und/oder `.sha256`-Datei im Release), sonst bricht das Update ab. Nur für sehr alte Releases ohne Prüfsumme ausschalten. Ab 1.8.0. |
 | GitHub-Token | leer | Nötig für private Repositories, erhöht außerdem das API-Limit von 60 auf 5000 Anfragen/Stunde. Siehe [Private Repositories](#private-repositories). |
 | Maximale Downloadgröße | 50 MB | Schutz vor übergroßen Archiven. |
 | Anzahl geprüfter Tags | 15 | Jeder Tag kostet eine API-Anfrage (Ergebnisse werden pro Commit zwischengespeichert). |

@@ -58,8 +58,10 @@ bin/console cache:clear
 - **Release packages**: If the GitHub release of a tag has a plugin ZIP attached
   (`<PluginName>.zip`, `<PluginName>-<version>.zip` or the only ZIP), it is installed instead
   of the source code – including built administration and `vendor/`. The SHA-256 digest
-  reported by GitHub is verified and the package version must match the tag's `composer.json`;
-  otherwise the tag's source code is used.
+  reported by GitHub is verified, and (since 1.8.0) a `<package>.zip.sha256` file published in the
+  same release; a mismatch aborts the update. With "Only install verified release packages"
+  (default on) a package without any checksum is not installed. The package version must match
+  the tag's `composer.json`; otherwise the tag's source code is used.
 - **Automatic update check**: scheduled task every 12 hours; updates appear directly on the
   plugin card and once as notification (bell). Without running scheduled tasks the check runs
   when "My extensions" is opened. Nothing is ever installed automatically.
@@ -68,7 +70,7 @@ bin/console cache:clear
 
 See *Settings → Extensions → GitHub plugin updater*: admins only (default on), allowed
 repositories (`owner/repo` or `owner/*`; since 1.7.0 an empty list is prefilled once with
-`DrdotHouse2106/*`, `FriendsOfShopware/*` and already linked repositories), allow branches (default off), GitHub token
+`DrdotHouse2106/*`, `FriendsOfShopware/*` and already linked repositories), allow branches (default off), only install verified release packages (default on, since 1.8.0: a release ZIP without a GitHub digest or `.sha256` file is rejected), GitHub token
 (required for private repositories, sent only to `api.github.com`), max download size, number of tags to check.
 
 ## Private repositories

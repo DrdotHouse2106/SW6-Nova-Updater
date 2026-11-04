@@ -2,6 +2,7 @@
 
 namespace DhGithubUpdater\Tests\Unit;
 
+use DhGithubUpdater\Exception\ChecksumException;
 use DhGithubUpdater\Exception\GithubUpdaterException;
 use DhGithubUpdater\Github\GithubApiClient;
 use DhGithubUpdater\Github\ReleaseAsset;
@@ -99,6 +100,112 @@ class ReleaseAssetTest extends TestCase
             static::assertStringContainsString('Prüfsumme', $e->getMessage());
         } finally {
             unlink($target);
+        }
+    }
+
+    public function testAssignsChecksumFileToPackage(): void
+    {
+        $client = new GithubApiClient(new MockHttpClient(static fn () => new MockResponse((string) json_encode([
+            ['tag_name' => 'v1.0.0', 'draft' => false, 'assets' => [
+                ['id' => 5, 'name' => 'MyPlugin-1.0.0.zip', 'size' => 100, 'state' => 'uploaded'],
+                ['id' => 6, 'name' => 'MyPlugin-1.0.0.zip.sha256', 'size' => 85, 'state' => 'uploaded'],
+                ['id' => 7, 'name' => 'Other.zip.sha256', 'size' => 85, 'state' => 'uploaded'],
+            ]],
+        ]))));
+
+        $releases = $client->listReleaseAssets(RepositoryReference::fromFullName('owner/repo'), null);
+
+        static::assertCount(1, $releases['v1.0.0']);
+        static::assertSame(5, $releases['v1.0.0'][0]->id);
+        static::assertSame(6, $releases['v1.0.0'][0]->checksumAssetId);
+    }
+
+    public function testParsesChecksumFile(): void
+    {
+        $hash = hash('sha256', 'ZIP');
+
+        static::assertSame($hash, ReleaseAsset::parseChecksumFile($hash . '  MyPlugin.zip' . "\n", 'MyPlugin.zip'));
+        static::assertSame($hash, ReleaseAsset::parseChecksumFile(strtoupper($hash) . ' *MyPlugin.zip', 'MyPlugin.zip'));
+        static::assertSame($hash, ReleaseAsset::parseChecksumFile($hash, 'MyPlugin.zip'));
+        static::assertNull(ReleaseAsset::parseChecksumFile($hash . '  Other.zip', 'MyPlugin.zip'));
+        static::assertNull(ReleaseAsset::parseChecksumFile('abc  MyPlugin.zip', 'MyPlugin.zip'));
+        static::assertNull(ReleaseAsset::parseChecksumFile($hash . "  MyPlugin.zip\n" . $hash . '  Other.zip', 'MyPlugin.zip'));
+        static::assertNull(ReleaseAsset::checksumFromApi(['id' => 1, 'name' => 'MyPlugin.zip.sha256', 'size' => 99999]));
+        static::assertNull(ReleaseAsset::checksumFromApi(['id' => 1, 'name' => '../x.zip.sha256', 'size' => 80]));
+    }
+
+    public function testVerifiesAgainstChecksumFile(): void
+    {
+        $hash = hash('sha256', 'ZIP');
+        $target = (string) tempnam(sys_get_temp_dir(), 'dh-ghu-');
+        $this->clientServing('ZIP', $hash . '  MyPlugin.zip')->downloadReleaseAsset(
+            RepositoryReference::fromFullName('owner/repo'),
+            new ReleaseAsset(5, 'MyPlugin.zip', 3, $hash, 6),
+            $target,
+            1024,
+            null,
+            true,
+        );
+
+        static::assertSame('ZIP', file_get_contents($target));
+        unlink($target);
+    }
+
+    public function testRejectsPackageNotMatchingChecksumFile(): void
+    {
+        // Digest von GitHub passt zum (ausgetauschten) Paket, die unabhängig veröffentlichte .sha256 nicht
+        $this->expectDownloadFailure(
+            $this->clientServing('BAD', hash('sha256', 'ZIP') . '  MyPlugin.zip'),
+            new ReleaseAsset(5, 'MyPlugin.zip', 3, hash('sha256', 'BAD'), 6),
+            true,
+            '.sha256',
+        );
+    }
+
+    public function testRejectsInvalidChecksumFile(): void
+    {
+        $this->expectDownloadFailure($this->clientServing('ZIP', 'kaputt'), new ReleaseAsset(5, 'MyPlugin.zip', 3, null, 6), false, '.sha256');
+    }
+
+    public function testRequiresChecksumWhenConfigured(): void
+    {
+        $requests = 0;
+        $client = new GithubApiClient(new MockHttpClient(static function () use (&$requests) {
+            ++$requests;
+
+            return new MockResponse('ZIP');
+        }));
+
+        $this->expectDownloadFailure($client, new ReleaseAsset(5, 'MyPlugin.zip', 3), true, 'nicht prüfen');
+        static::assertSame(0, $requests, 'Ohne Prüfsumme darf das Paket gar nicht erst geladen werden.');
+    }
+
+    public function testUnverifiedPackageAllowedWhenNotRequired(): void
+    {
+        $target = (string) tempnam(sys_get_temp_dir(), 'dh-ghu-');
+        $this->clientServing('ZIP', '')->downloadReleaseAsset(RepositoryReference::fromFullName('owner/repo'), new ReleaseAsset(5, 'MyPlugin.zip', 3), $target, 1024, null, false);
+
+        static::assertSame('ZIP', file_get_contents($target));
+        unlink($target);
+    }
+
+    private function clientServing(string $zip, string $checksumFile): GithubApiClient
+    {
+        return new GithubApiClient(new MockHttpClient(static fn (string $method, string $url) => new MockResponse(
+            str_ends_with($url, '/releases/assets/6') ? $checksumFile : $zip,
+        )));
+    }
+
+    private function expectDownloadFailure(GithubApiClient $client, ReleaseAsset $asset, bool $require, string $messagePart): void
+    {
+        $target = (string) tempnam(sys_get_temp_dir(), 'dh-ghu-');
+        try {
+            $client->downloadReleaseAsset(RepositoryReference::fromFullName('owner/repo'), $asset, $target, 1024, null, $require);
+            static::fail('Das Paket darf nicht akzeptiert werden.');
+        } catch (ChecksumException $e) {
+            static::assertStringContainsString($messagePart, $e->getMessage());
+        } finally {
+            @unlink($target);
         }
     }
 }

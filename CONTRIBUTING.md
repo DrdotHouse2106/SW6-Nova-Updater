@@ -50,6 +50,8 @@ ausfüllen; der Eintrag wird dann übernommen.
   bzw. `src/Resources/app/storefront/dist` im Repository liegen.
 - Eine fertige GitHub Action, die solche Releases automatisch erzeugt, liegt in
   [`.github/workflows/release.yml`](.github/workflows/release.yml) und kann übernommen werden.
+  Sie legt zum ZIP auch eine Prüfsummen-Datei `<ZIP-Name>.sha256` (Ausgabe von `sha256sum`) ins
+  Release, gegen die der Updater zusätzlich prüft.
 - Das Plugin wird aktiv gepflegt und ist mit Shopware 6.6 oder 6.7 kompatibel.
 
 Vor dem Pull Request bitte im eigenen Shop „Verbindung testen“ ausführen.

@@ -6,6 +6,7 @@ use Composer\IO\NullIO;
 use DhGithubUpdater\Catalog\CatalogParser;
 use DhGithubUpdater\Catalog\CatalogProvider;
 use DhGithubUpdater\Config\UpdaterConfig;
+use DhGithubUpdater\Exception\ChecksumException;
 use DhGithubUpdater\Exception\GithubUpdaterException;
 use DhGithubUpdater\Exception\UpdateRolledBackException;
 use DhGithubUpdater\Github\GitRef;
@@ -535,16 +536,33 @@ class GithubPluginManager
         if ($asset !== null) {
             try {
                 $package = $this->stageVerified($candidate, function (string $zipFile) use ($repository, $asset): void {
-                    $this->client->downloadReleaseAsset($repository, $asset, $zipFile, $this->config->getMaxDownloadBytes(), $this->config->getToken());
+                    $this->client->downloadReleaseAsset(
+                        $repository,
+                        $asset,
+                        $zipFile,
+                        $this->config->getMaxDownloadBytes(),
+                        $this->config->getToken(),
+                        $this->config->isVerifiedPackagesOnly(),
+                    );
                 });
 
                 $this->logger->info('DhGithubUpdater: Release-Paket verwendet.', [
                     'repository' => $repository->getFullName(),
                     'asset' => $asset->name,
                     'sha256' => $asset->sha256 ?? 'von GitHub nicht angegeben',
+                    'checksumFile' => $asset->checksumAssetId !== null ? 'geprüft' : 'nicht vorhanden',
                 ]);
 
                 return $package;
+            } catch (ChecksumException $e) {
+                // Nicht prüfbar oder abweichend: kein Ausweichen auf den Quellcode, Update abbrechen
+                $this->logger->error('DhGithubUpdater: Release-Paket abgelehnt (Prüfsumme).', [
+                    'repository' => $repository->getFullName(),
+                    'asset' => $asset->name,
+                    'error' => $e->getMessage(),
+                ]);
+
+                throw $e;
             } catch (GithubUpdaterException $e) {
                 $this->logger->warning('DhGithubUpdater: Release-Paket nicht verwendbar, nutze Quellcode des Tags.', [
                     'repository' => $repository->getFullName(),
