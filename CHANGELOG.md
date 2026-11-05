@@ -1,3 +1,6 @@
+# 1.8.1
+- Katalog: Nova Nachfrage (Bewertungsanfrage und ähnliche Produkte nach dem Versand) aufgenommen
+
 # 1.8.0
 - Sicherheit: Liegt im GitHub-Release neben dem Plugin-ZIP eine Prüfsummen-Datei `<Paket>.zip.sha256` (Format von `sha256sum`), wird das Paket zusätzlich dagegen geprüft. Die Nova-Plugins veröffentlichen diese Datei ab sofort mit jedem Release
 - Sicherheit: Neue Einstellung **„Nur geprüfte Release-Pakete installieren“** (Standard: an, auch für bestehende Installationen). Ein Release-ZIP, für das weder GitHub eine Prüfsumme nennt noch eine `.sha256`-Datei vorliegt, wird nicht installiert, das Update bricht mit Hinweis ab. GitHub liefert die Prüfsumme seit 2025 für alle neu hochgeladenen Anhänge; betroffen sind also nur sehr alte Releases. Für solche die Einstellung ausschalten

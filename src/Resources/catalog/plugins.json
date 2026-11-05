@@ -176,6 +176,18 @@
             }
         },
         {
+            "repository": "DrdotHouse2106/SW6-Nova-Nachfrage",
+            "pluginName": "NovaNachfrage",
+            "name": "Nova Nachfrage",
+            "vendor": "DrdotHouse",
+            "category": "marketing",
+            "license": "MIT",
+            "description": {
+                "de-DE": "Nachfrage einige Tage nach dem Versand: Bitte um Produkt- und Google-Bewertung plus ähnliche Produkte als Bestandskundenwerbung (§ 7 Abs. 3 UWG) – mit dauerhaft gespeicherter Abmeldung.",
+                "en-GB": "Follow-up a few days after shipping: request for product and Google reviews plus similar products for existing customers – with permanently stored opt-out."
+            }
+        },
+        {
             "repository": "shopware/SwagLanguagePack",
             "pluginName": "SwagLanguagePack",
             "name": "Sprachpaket",
