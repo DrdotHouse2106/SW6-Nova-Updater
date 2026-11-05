@@ -127,6 +127,10 @@ Known pitfalls from real installations. **Please add new ones** (or open an issu
 - **Plugins with Composer dependencies** may fail on hosts without Composer – install the dependency manually in the shop root.
 - **Update ends with "(Timeout)" and the card still shows the old version** (≤ 1.2.4): Shopware compiled the themes of all sales channels in one request. Update the updater to 1.3.0 (stepwise), and finish the stuck update via the card's "Update" button or `bin/console plugin:update <PluginName>` + `cache:clear`.
 
+## How this plugin was made
+
+This plugin was developed with the help of AI (Claude by Anthropic). The requirements come from running several Shopware shops day to day; the code was written and revised with AI. It is checked with automated tests and static analysis (where present in the repository), regular security reviews of the code and in production use in the author's own shops. Still: use at your own risk and without warranty (see license). Please report bugs and suggestions as an issue. More background: [SW6-Nova-Plugins](https://github.com/DrdotHouse2106/SW6-Nova-Plugins).
+
 ## License
 
 MIT
