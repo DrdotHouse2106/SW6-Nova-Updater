@@ -188,6 +188,18 @@
             }
         },
         {
+            "repository": "DrdotHouse2106/SW6-Nova-GoCardless",
+            "pluginName": "NovaGoCardless",
+            "name": "Nova GoCardless",
+            "vendor": "DrdotHouse",
+            "category": "payment",
+            "license": "MIT",
+            "description": {
+                "de-DE": "SEPA-Lastschrift über GoCardless: Mandat auf der sicheren GoCardless-Seite, Zahlungsstatus automatisch per Webhook (bezahlt, fehlgeschlagen, Rückbuchung) – ohne IBAN im Shop.",
+                "en-GB": "SEPA direct debit via GoCardless: mandate on the secure GoCardless page, payment status updated automatically via webhooks (paid, failed, chargeback) – no IBAN stored in the shop."
+            }
+        },
+        {
             "repository": "shopware/SwagLanguagePack",
             "pluginName": "SwagLanguagePack",
             "name": "Sprachpaket",

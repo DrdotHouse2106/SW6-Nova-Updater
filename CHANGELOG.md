@@ -1,3 +1,6 @@
+# 1.8.2
+- Katalog: Nova GoCardless (SEPA-Lastschrift über GoCardless) aufgenommen
+
 # 1.8.1
 - Katalog: Nova Nachfrage (Bewertungsanfrage und ähnliche Produkte nach dem Versand) aufgenommen
 
